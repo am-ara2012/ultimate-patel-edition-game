@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ULTIMATE — Patel Edition Multiplayer Game</title>
+  <meta name="description" content="ULTIMATE Patel Edition — The drawing and bluffing party game for up to 12 players.">
+  
+  <!-- Google Fonts: Montserrat 900 Black, Syne, Outfit, Plus Jakarta Sans, Fraunces & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,700&family=Montserrat:wght@800;900&family=Outfit:wght@600;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- PeerJS for seamless peer-to-peer multiplayer across phones and PCs -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <!-- Canvas Confetti for celebratory reveals -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- Canvas for Subtle Trailing Cursor Dots -->
+  <canvas id="cursor-canvas"></canvas>
+
+  <!-- Ambient Glow -->
+  <div class="ambient-glow"></div>
+  <div class="particles-container" id="particlesContainer"></div>
+
+  <!-- Site Navigation Header (Ultra-slim, unobtrusive) -->
+  <header class="site-header">
+    <a href="#" class="brand-logo" onclick="app.goHome()">ULTIMATE</a>
+
+    <div class="nav-actions">
+      <span class="room-pin-display hidden" id="roomPinBadge">PIN: <strong id="headerPinText">----</strong></span>
+      <span class="player-count-badge hidden" id="headerPlayerCount">0/12 Players</span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-wrapper">
+    <main class="app-main" id="screenContainer">
+      
+      <!-- SCREEN 1: HOME SCREEN (EXACTLY MATCHING ULTIMATE INDEX WITH SMOOTH SCROLL) -->
+      <section class="screen active hero-section hero-container" id="screenHome">
+        
+        <!-- Top Spacer & Badge with Pulse Dot saying PATEL EDITION -->
+        <div class="hero-top-spacer"></div>
+        <div class="hero-badge">
+          <span class="pulse"></span> <span class="badge-accent-text">PATEL EDITION</span>
+        </div>
+
+        <!-- DISTINCT ANIMATED RAINBOW TITLE 'ULTIMATE' -->
+        <div class="hero-title-wrap hero-title-wrapper">
+          <h1 class="hero-title rainbow-hero-title">ULTIMATE</h1>
+        </div>
+
+        <!-- Subtitle -->
+        <p class="hero-subtitle">
+          The <span class="rainbow-text-word">ULTIMATE</span> Patel Edition drawing and bluffing party game
+        </p>
+        <p class="hero-subtitle hero-subtitle-sub">
+          with up to <span class="highlight-cyan">12 players</span> online &bull; draw, bluff and triumph!
+        </p>
+
+        <!-- Main Actions: HOST & JOIN BUTTONS -->
+        <div class="hero-actions-container">
+          <button class="btn btn-ultimate-host" id="btnHostGame" onclick="if(window.app)window.app.hostNewGame()">
+            <span class="btn-text-main">Host Game</span>
+            <span class="btn-text-sub">Create a room on this screen</span>
+          </button>
+
+          <button class="btn btn-ultimate-join" id="btnOpenJoinModal" onclick="if(window.app)window.app.showScreen('screenJoin')">
+            <span class="btn-text-main">Join Game</span>
+            <span class="btn-text-sub">Enter the Game PIN to play</span>
+          </button>
+        </div>
+
+      </section>
+
+      <!-- SCREEN 2: JOIN FORM MODAL / SCREEN -->
+      <section class="screen" id="screenJoin">
+        <div class="join-card glass-panel animate-pop-in">
+          <button class="btn-back" id="btnBackFromJoin">&larr; Back</button>
+          <h2 class="section-title">Join Game</h2>
+          <p class="section-subtitle">Enter the 4-digit Game PIN and your nickname</p>
+
+          <form id="joinGameForm" class="join-form" onsubmit="event.preventDefault(); app.submitJoin();">
+            <div class="form-group">
+              <label for="inputGamePin">Game PIN</label>
+              <input type="text" id="inputGamePin" class="input-pin" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="e.g. 7492" autocomplete="off" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inputNickname">Your Nickname</label>
+              <input type="text" id="inputNickname" maxlength="15" placeholder="e.g. Amara, Uncle Bob" autocomplete="nickname" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inputCompetition">Competition / Squad Name <span class="badge-optional">Optional</span></label>
+              <input type="text" id="inputCompetition" maxlength="20" placeholder="e.g. Patel All-Stars, Team Chai">
+            </div>
+
+            <!-- Scroll Indicator right above action button -->
+            <div class="scroll-indicator" style="margin: 0.8rem auto 0.5rem;">
+              <span>Join game below</span>
+              &darr;
+            </div>
+
+            <button type="submit" class="btn btn-ultimate-host btn-block" id="btnSubmitJoin">
+              Enter Lobby
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: LOBBY SCREEN (PHOTO VIDEO REEL + PARTICIPANTS + HOST CONTINUE) -->
+      <section class="screen" id="screenLobby">
+        <div class="lobby-layout">
+          
+          <!-- Left/Top Section: Cinematic Photo Video Montage -->
+          <div class="lobby-media-card glass-panel">
+            <div class="media-card-header">
+              <div class="room-pin-hero">
+                <span class="pin-label">GAME PIN:</span>
+                <span class="pin-value" id="lobbyPinDisplay">----</span>
+                <button class="copy-pin-btn" id="btnCopyPin" title="Copy PIN / Link">Copy PIN</button>
+              </div>
+              <div class="pin-instructions">
+                Join on your mobile phone or tablet using the Game PIN!
+              </div>
+            </div>
+
+            <!-- Drawful Mascot Display -->
+            <div class="lobby-mascot-container" id="lobbyMascotContainer">
+              <img src="assets/images/drawful-mascot.png" alt="Drawful Mascot" class="lobby-mascot-img">
+            </div>
+          </div>
+
+          <!-- Right/Bottom Section: Participants & Host Continue Button -->
+          <div class="lobby-players-card glass-panel">
+            <div class="players-card-header">
+              <h3>Participants (<span id="participantCount">0</span>/12)</h3>
+              <span class="squad-title-badge" id="lobbyCompetitionTitle">Patel Game Night Championship</span>
+            </div>
+
+            <div class="players-grid" id="playersGrid">
+              <!-- Player tiles populated dynamically -->
+            </div>
+
+            <div class="lobby-action-area" id="lobbyActionArea">
+              <!-- Host view gets the CONTINUE button -->
+              <div id="hostLobbyControls" class="host-controls hidden">
+                <p class="host-hint">When all players have joined, press continue to start Drawful!</p>
+                <div class="scroll-indicator" style="margin: 0.6rem auto 0.4rem;">
+                  <span>Start game below</span>
+                  &darr;
+                </div>
+                <button class="btn btn-ultimate-host btn-block" id="btnHostContinue">
+                  Continue and Start Game
+                </button>
+              </div>
+
+              <!-- Non-host view gets waiting status -->
+              <div id="clientLobbyControls" class="client-controls hidden">
+                <div class="waiting-pulse">
+                  <span class="spinner"></span>
+                  <p>Waiting for host to press <strong>Continue</strong>...</p>
+                </div>
+                <div class="reaction-buttons">
+                  <p class="reaction-hint">Send cheer reaction:</p>
+                  <div class="reaction-bar">
+                    <button class="btn-reaction" onclick="app.sendReaction('Hooray!')">Hooray!</button>
+                    <button class="btn-reaction" onclick="app.sendReaction('Brilliant!')">Brilliant!</button>
+                    <button class="btn-reaction" onclick="app.sendReaction('Cheers!')">Cheers!</button>
+                    <button class="btn-reaction" onclick="app.sendReaction('Superb!')">Superb!</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SCREEN 4: DRAWING PHASE SCREEN -->
+      <section class="screen" id="screenDrawing">
+        <div class="game-stage-layout">
+          <div class="stage-header glass-panel">
+            <div class="stage-info">
+              <span class="stage-badge">ROUND <span id="drawRoundNumber">1</span></span>
+              <h2 class="stage-title">Time to Draw!</h2>
+            </div>
+            <div class="stage-timer" id="drawingTimer">
+              <span class="timer-label">Time:</span>
+              <span class="timer-seconds" id="drawingTimeRemaining">60</span>s
+            </div>
+          </div>
+
+          <div class="drawing-container glass-panel">
+            <!-- For Drawer: prompt card -->
+            <div class="drawer-prompt-banner">
+              <span class="prompt-label">Your Secret Prompt to Draw:</span>
+              <div class="prompt-text-display" id="playerSecretPrompt">Loading your prompt...</div>
+              <small class="prompt-tip">Do not write letters or numbers &mdash; only draw illustrations!</small>
+            </div>
+
+            <!-- Canvas Workspace -->
+            <div class="canvas-wrapper">
+              <canvas id="drawingCanvas" width="600" height="500"></canvas>
+            </div>
+
+            <!-- Canvas Tool Toolbar -->
+            <div class="canvas-toolbar">
+              <div class="color-palette" id="colorPalette">
+                <button class="color-btn selected" style="background:#000000" data-color="#000000" title="Black"></button>
+                <button class="color-btn" style="background:#e63946" data-color="#e63946" title="Red"></button>
+                <button class="color-btn" style="background:#3a86ff" data-color="#3a86ff" title="Blue"></button>
+                <button class="color-btn" style="background:#38b000" data-color="#38b000" title="Green"></button>
+                <button class="color-btn" style="background:#ffb703" data-color="#ffb703" title="Yellow"></button>
+                <button class="color-btn" style="background:#9d4edd" data-color="#9d4edd" title="Purple"></button>
+                <button class="color-btn" style="background:#fb5607" data-color="#fb5607" title="Orange"></button>
+                <button class="color-btn" style="background:#8338ec" data-color="#8338ec" title="Violet"></button>
+              </div>
+
+              <div class="brush-sizes" id="brushSizes">
+                <button class="brush-btn" data-size="4" title="Fine Stroke"><span class="dot size-s"></span></button>
+                <button class="brush-btn selected" data-size="8" title="Medium Stroke"><span class="dot size-m"></span></button>
+                <button class="brush-btn" data-size="16" title="Broad Stroke"><span class="dot size-l"></span></button>
+              </div>
+
+              <div class="canvas-actions">
+                <button class="btn-tool" id="btnCanvasUndo" title="Undo stroke">Undo</button>
+                <button class="btn-tool" id="btnCanvasClear" title="Clear canvas">Clear</button>
+                <button class="btn btn-ultimate-host btn-submit-drawing" id="btnSubmitDrawing">
+                  Done Drawing
+                </button>
+              </div>
+            </div>
+
+            <!-- Submitted Overlay -->
+            <div class="submitted-overlay hidden" id="drawingSubmittedOverlay">
+              <div class="submitted-content">
+                <div class="status-pill-large">SUBMITTED</div>
+                <h3>Drawing Submitted!</h3>
+                <p>Waiting for other artists to complete their illustrations...</p>
+                <div class="submitted-player-count">
+                  <span id="submittedDrawingsCount">0</span>/<span id="totalDrawingsCount">0</span> drawings submitted
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: FAKE GUESS / DECOY ENTRY PHASE -->
+      <section class="screen" id="screenFakeGuess">
+        <div class="guess-stage-layout glass-panel animate-pop-in">
+          <div class="stage-header">
+            <div class="stage-info">
+              <span class="stage-badge">WHAT IS THIS?</span>
+              <h2 class="stage-title">Fool Your Friends!</h2>
+            </div>
+            <div class="stage-timer">
+              <span class="timer-label">Time:</span>
+              <span class="timer-seconds" id="guessTimeRemaining">45</span>s
+            </div>
+          </div>
+
+          <div class="artwork-showcase">
+            <div class="artwork-frame">
+              <img id="guessArtworkImg" alt="Drawing to guess" src="">
+            </div>
+          </div>
+
+          <!-- Non-drawer input -->
+          <div class="guess-input-container" id="guessInputSection">
+            <p class="guess-instruction">Write a believable or comical fake title for this drawing to deceive other players into voting for it:</p>
+            <form id="fakeGuessForm" onsubmit="event.preventDefault(); app.submitFakeGuess();">
+              <input type="text" id="inputFakeGuess" maxlength="45" placeholder="Enter your fake title..." autocomplete="off" required>
+              <button type="submit" class="btn btn-ultimate-host" id="btnSubmitFakeGuess">Submit Fake Title</button>
+            </form>
+          </div>
+
+          <!-- Drawer waiting message -->
+          <div class="drawer-waiting-message hidden" id="drawerWaitingSection">
+            <div class="star-badge">This is your drawing!</div>
+            <p>Relax and watch the other players attempt to guess what you created!</p>
+          </div>
+
+          <!-- Submitted confirmation -->
+          <div class="guess-submitted-message hidden" id="guessSubmittedSection">
+            <div class="status-pill-large">SUBMITTED</div>
+            <h3>Fake Title Submitted!</h3>
+            <p>Waiting for all players to submit their titles...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 6: VOTING PHASE SCREEN -->
+      <section class="screen" id="screenVoting">
+        <div class="voting-stage-layout glass-panel animate-pop-in">
+          <div class="stage-header">
+            <div class="stage-info">
+              <span class="stage-badge">VOTING ROUND</span>
+              <h2 class="stage-title">Which one is the REAL prompt?</h2>
+            </div>
+            <div class="stage-timer">
+              <span class="timer-label">Time:</span>
+              <span class="timer-seconds" id="voteTimeRemaining">30</span>s
+            </div>
+          </div>
+
+          <div class="voting-split-view">
+            <div class="voting-artwork-card">
+              <img id="votingArtworkImg" alt="Drawing being voted on" src="">
+            </div>
+
+            <div class="voting-choices-container">
+              <!-- Choices populated dynamically -->
+              <div class="choices-grid" id="choicesGrid">
+                <!-- Choice buttons injected here -->
+              </div>
+              <div class="drawer-vote-disabled hidden" id="drawerVoteDisabled">
+                <p>This is your drawing. You do not vote this turn. Watch the votes roll in!</p>
+              </div>
+              <div class="vote-submitted-feedback hidden" id="voteSubmittedFeedback">
+                <p>Vote confirmed! Waiting for all votes...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 7: REVEAL & SCORING SCREEN -->
+      <section class="screen" id="screenReveal">
+        <div class="reveal-stage-layout glass-panel animate-pop-in">
+          <div class="stage-header">
+            <span class="stage-badge">THE MOMENT OF TRUTH</span>
+            <h2 class="stage-title" id="revealTitle">Here is what happened!</h2>
+          </div>
+
+          <div class="reveal-artwork-display">
+            <div class="artwork-frame">
+              <img id="revealArtworkImg" alt="Revealed Drawing" src="">
+              <div class="artist-tag" id="revealArtistTag">Drawn by: Amara</div>
+            </div>
+          </div>
+
+          <div class="reveal-cards-container" id="revealCardsContainer">
+            <!-- Injected dynamically with reveals of fake titles, who got fooled, and the true prompt -->
+          </div>
+
+          <div class="reveal-continue-bar" id="revealHostContinueBar">
+            <button class="btn btn-ultimate-host" id="btnRevealNext" onclick="app.hostNextReveal()">
+              Next Drawing / Leaderboard &rarr;
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 8: LEADERBOARD / SCOREBOARD SCREEN -->
+      <section class="screen" id="screenScoreboard">
+        <div class="scoreboard-card glass-panel animate-pop-in">
+          <div class="scoreboard-header">
+            <div class="header-tagline-badge">LEADERBOARD</div>
+            <h2 class="section-title">Scoreboard</h2>
+            <p class="section-subtitle" id="scoreboardSubTitle">Round 1 Standings</p>
+          </div>
+
+          <div class="leaderboard-list" id="leaderboardList">
+            <!-- Injected dynamically -->
+          </div>
+
+          <div class="scoreboard-actions" id="scoreboardActions">
+            <!-- Host button to continue to next round -->
+            <button class="btn btn-ultimate-host hidden" id="btnScoreboardNextRound" onclick="app.startNextRound()">
+              Start Next Round
+            </button>
+            <button class="btn btn-ultimate-host hidden" id="btnScoreboardFinal" onclick="app.showFinalPodium()">
+              Final Awards and Podium
+            </button>
+            <p class="client-waiting-text hidden" id="scoreboardWaitingHost">
+              Waiting for host to continue to the next round...
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 9: GAME OVER / FINAL PODIUM SCREEN -->
+      <section class="screen" id="screenGameOver">
+        <div class="gameover-card glass-panel animate-pop-in">
+          <div class="podium-header">
+            <div class="header-tagline-badge">CHAMPIONS</div>
+            <h1 class="main-title">GAME OVER!</h1>
+            <p class="tagline" id="finalWinningSquad">Patel Edition Champions Crowned!</p>
+          </div>
+
+          <!-- Top 3 Podium -->
+          <div class="podium-display" id="podiumDisplay">
+            <!-- 2nd Place -->
+            <div class="podium-pillar pillar-second" id="podiumSecond">
+              <div class="podium-avatar">2nd</div>
+              <div class="podium-name" id="podiumName2">Player 2</div>
+              <div class="podium-score" id="podiumScore2">0 pts</div>
+              <div class="podium-step">2</div>
+            </div>
+            <!-- 1st Place -->
+            <div class="podium-pillar pillar-first" id="podiumFirst">
+              <div class="podium-avatar">1st</div>
+              <div class="podium-name" id="podiumName1">Player 1</div>
+              <div class="podium-score" id="podiumScore1">0 pts</div>
+              <div class="podium-step">1</div>
+            </div>
+            <!-- 3rd Place -->
+            <div class="podium-pillar pillar-third" id="podiumThird">
+              <div class="podium-avatar">3rd</div>
+              <div class="podium-name" id="podiumName3">Player 3</div>
+              <div class="podium-score" id="podiumScore3">0 pts</div>
+              <div class="podium-step">3</div>
+            </div>
+          </div>
+
+          <!-- Full Table Standings -->
+          <div class="final-standings-list" id="finalStandingsList"></div>
+
+          <div class="gameover-actions">
+            <button class="btn btn-ultimate-host" id="btnPlayAgain" onclick="app.resetToLobby()">
+              Play Again in Same Lobby
+            </button>
+            <button class="btn btn-secondary" onclick="app.goHome()">
+              Return to Home
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Reaction Floater Container for live cheers -->
+    <div class="floating-reactions-layer" id="floatingReactionsLayer"></div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/slideshow.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
