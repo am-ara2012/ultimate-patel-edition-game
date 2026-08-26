@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8">
@@ -1756,6 +1756,35 @@ body {
 .animate-pop-in { animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 .btn-block { width: 100%; }
 
+.btn-start-game-glow {
+  background: linear-gradient(135deg, #ff0055, #ff5500, #ff007f);
+  background-size: 200% 200%;
+  animation: startBtnPulse 3s ease infinite;
+  font-size: 1.35rem !important;
+  padding: 1.1rem 2rem !important;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--font-heading) !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 25px rgba(255, 0, 85, 0.6), inset 0 0 15px rgba(255, 255, 255, 0.2);
+  border: 2px solid #ff77a9 !important;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.btn-start-game-glow:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 0 40px rgba(255, 0, 85, 0.9), inset 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+@keyframes startBtnPulse {
+  0% { background-position: 0% 50%; box-shadow: 0 0 20px rgba(255, 0, 85, 0.5); }
+  50% { background-position: 100% 50%; box-shadow: 0 0 35px rgba(255, 85, 0, 0.8); }
+  100% { background-position: 0% 50%; box-shadow: 0 0 20px rgba(255, 0, 85, 0.5); }
+}
+
 </style>
   
   <!-- PeerJS for seamless peer-to-peer multiplayer across phones and PCs -->
@@ -1894,15 +1923,15 @@ body {
             </div>
 
             <div class="lobby-action-area" id="lobbyActionArea">
-              <!-- Host view gets the CONTINUE button -->
+              <!-- Host view gets the START GAME button -->
               <div id="hostLobbyControls" class="host-controls hidden">
-                <p class="host-hint">When all players have joined, press continue to start Drawful!</p>
+                <p class="host-hint">When all players have joined, press Start Game to begin Drawful!</p>
                 <div class="scroll-indicator" style="margin: 0.6rem auto 0.4rem;">
                   <span>Start game below</span>
                   &darr;
                 </div>
-                <button class="btn btn-ultimate-host btn-block" id="btnHostContinue">
-                  Continue and Start Game
+                <button class="btn btn-start-game-glow btn-block" id="btnHostContinue">
+                  Start Game
                 </button>
               </div>
 
@@ -1910,7 +1939,7 @@ body {
               <div id="clientLobbyControls" class="client-controls hidden">
                 <div class="waiting-pulse">
                   <span class="spinner"></span>
-                  <p>Waiting for host to press <strong>Continue</strong>...</p>
+                  <p>Waiting for host to press <strong>Start Game</strong>...</p>
                 </div>
                 <div class="reaction-buttons">
                   <p class="reaction-hint">Send cheer reaction:</p>
