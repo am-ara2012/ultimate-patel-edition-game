@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en-GB">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ULTIMATE â€” Patel Edition Multiplayer Game</title>
-  <meta name="description" content="ULTIMATE Patel Edition â€” The drawing and bluffing party game for up to 12 players.">
+  <title>ULTIMATE Ã¢â‚¬â€ Patel Edition Multiplayer Game</title>
+  <meta name="description" content="ULTIMATE Patel Edition Ã¢â‚¬â€ The drawing and bluffing party game for up to 12 players.">
   
   <!-- Google Fonts: Montserrat 900 Black, Syne, Outfit, Plus Jakarta Sans, Fraunces & Playfair Display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1924,7 +1924,7 @@ body {
 
             <div class="lobby-action-area" id="lobbyActionArea">
               <!-- Host view gets the START GAME button -->
-              <div id="hostLobbyControls" class="host-controls hidden">
+              <div id="hostLobbyControls" class="host-controls">
                 <p class="host-hint">When all players have joined, press Start Game to begin Drawful!</p>
                 <div class="scroll-indicator" style="margin: 0.6rem auto 0.4rem;">
                   <span>Start game below</span>
@@ -3736,6 +3736,20 @@ class GameApp {
     // Update Header Player Count
     const headerCount = document.getElementById('headerPlayerCount');
     if (headerCount) headerCount.textContent = `${players.length}/12 Players`;
+
+    // Ensure host / client controls are correctly toggled
+    const isHost = !this.network || this.network.isHost;
+    const hostControls = document.getElementById('hostLobbyControls');
+    const clientControls = document.getElementById('clientLobbyControls');
+    if (hostControls && clientControls) {
+      if (isHost) {
+        hostControls.classList.remove('hidden');
+        clientControls.classList.add('hidden');
+      } else {
+        hostControls.classList.add('hidden');
+        clientControls.classList.remove('hidden');
+      }
+    }
   }
 
   copyGamePin() {
@@ -4300,4 +4314,5 @@ if (document.readyState === 'loading') {
 </script>
 </body>
 </html>
+
 
